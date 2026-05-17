@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAdminSession } from '@/lib/auth'
+import { getAdminSession, hashPassword, verifyPassword } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
 async function requireAdmin() {
@@ -42,9 +42,44 @@ export async function PUT(request: NextRequest) {
     await requireAdmin()
 
     const body = await request.json()
+    const {
+      currentPassword,
+      newPassword,
+      confirmPassword,
+      ...restSettings
+    } = body as Record<string, string>
 
-    // Update each setting
-    for (const [key, value] of Object.entries(body)) {
+    if (newPassword) {
+      if (!currentPassword) {
+        return NextResponse.json({ error: 'Current password is required to change password' }, { status: 400 })
+      }
+
+      if (newPassword !== confirmPassword) {
+        return NextResponse.json({ error: 'New password and confirmation do not match' }, { status: 400 })
+      }
+
+      const adminPasswordSetting = await prisma.setting.findUnique({
+        where: { key: 'admin_password_hash' },
+      })
+
+      if (!adminPasswordSetting) {
+        return NextResponse.json({ error: 'Admin password is not configured' }, { status: 500 })
+      }
+
+      const isValidPassword = await verifyPassword(currentPassword, adminPasswordSetting.value)
+      if (!isValidPassword) {
+        return NextResponse.json({ error: 'Current password is incorrect' }, { status: 401 })
+      }
+
+      const hashedPassword = await hashPassword(newPassword)
+      await prisma.setting.upsert({
+        where: { key: 'admin_password_hash' },
+        update: { value: hashedPassword },
+        create: { key: 'admin_password_hash', value: hashedPassword },
+      })
+    }
+
+    for (const [key, value] of Object.entries(restSettings)) {
       await prisma.setting.upsert({
         where: { key },
         update: { value: String(value) },

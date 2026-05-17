@@ -24,6 +24,8 @@
     "bcryptjs": "^3.0.3",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^1.16.0",
+    "@fortawesome/react-fontawesome": "^0.2.0",
+    "@fortawesome/free-solid-svg-icons": "^6.5.0",
     "next": "16.2.6",
     "pg": "^8.20.0",
     "prisma": "^7.8.0",

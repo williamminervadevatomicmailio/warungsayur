@@ -21,6 +21,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid payment method' }, { status: 400 })
     }
 
+    const settings = await prisma.setting.findMany({
+      where: { key: { in: ['cash_enabled', 'qris_enabled'] } },
+    })
+    const settingsMap = Object.fromEntries(settings.map((setting) => [setting.key, setting.value]))
+    const cashEnabled = settingsMap.cash_enabled !== 'false'
+    const qrisEnabled = settingsMap.qris_enabled !== 'false'
+
+    if (paymentMethod === 'CASH' && !cashEnabled) {
+      return NextResponse.json({ error: 'Metode pembayaran Cash tidak tersedia saat ini' }, { status: 400 })
+    }
+    if (paymentMethod === 'QRIS' && !qrisEnabled) {
+      return NextResponse.json({ error: 'Metode pembayaran QRIS tidak tersedia saat ini' }, { status: 400 })
+    }
+
     // Fetch products to verify stock and prices
     const productIds = items.map((i: { productId: string }) => i.productId)
     const products = await prisma.product.findMany({

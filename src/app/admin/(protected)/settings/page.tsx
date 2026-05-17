@@ -1,7 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Save, Upload } from 'lucide-react'
+import { Save } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons'
 import Swal from 'sweetalert2'
 
 interface Settings {
@@ -19,6 +21,14 @@ export default function SettingsPage() {
   const [cashEnabled, setCashEnabled] = useState(true)
   const [qrisEnabled, setQrisEnabled] = useState(true)
   const [qrisImageUrl, setQrisImageUrl] = useState('')
+  const [adminUsername, setAdminUsername] = useState('')
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showPasswordFields, setShowPasswordFields] = useState(false)
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   useEffect(() => {
     fetchSettings()
@@ -34,6 +44,7 @@ export default function SettingsPage() {
         setCashEnabled(data.cash_enabled !== 'false')
         setQrisEnabled(data.qris_enabled !== 'false')
         setQrisImageUrl(data.qris_image_url || '')
+        setAdminUsername(data.admin_username || '')
       }
     } catch (err) {
       console.error('Error:', err)
@@ -43,32 +54,67 @@ export default function SettingsPage() {
   }
 
   async function handleSave() {
+    if (newPassword && newPassword !== confirmPassword) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Password tidak cocok',
+        text: 'Pastikan password baru dan konfirmasi password sama.',
+        confirmButtonColor: '#16a34a',
+      })
+      return
+    }
+
+    if (newPassword && !currentPassword) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Password saat ini diperlukan',
+        text: 'Masukkan password saat ini untuk mengganti password.',
+        confirmButtonColor: '#16a34a',
+      })
+      return
+    }
+
     setSaving(true)
 
     try {
+      const body: Record<string, string> = {
+        cash_enabled: cashEnabled ? 'true' : 'false',
+        qris_enabled: qrisEnabled ? 'true' : 'false',
+        qris_image_url: qrisImageUrl,
+        admin_username: adminUsername,
+      }
+
+      if (newPassword) {
+        body.currentPassword = currentPassword
+        body.newPassword = newPassword
+        body.confirmPassword = confirmPassword
+      }
+
       const res = await fetch('/api/admin/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          cash_enabled: cashEnabled ? 'true' : 'false',
-          qris_enabled: qrisEnabled ? 'true' : 'false',
-          qris_image_url: qrisImageUrl,
-        }),
+        body: JSON.stringify(body),
       })
 
-      if (res.ok) {
-        await Swal.fire({
-          icon: 'success',
-          title: 'Berhasil',
-          text: 'Pengaturan berhasil disimpan',
-          confirmButtonColor: '#16a34a',
-        })
+      if (!res.ok) {
+        const errorData = await res.json()
+        throw new Error(errorData?.error || 'Gagal menyimpan pengaturan')
       }
+
+      await Swal.fire({
+        icon: 'success',
+        title: 'Berhasil',
+        text: 'Pengaturan berhasil disimpan',
+        confirmButtonColor: '#16a34a',
+      })
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
     } catch (err) {
       Swal.fire({
         icon: 'error',
         title: 'Gagal',
-        text: 'Gagal menyimpan pengaturan',
+        text: err instanceof Error ? err.message : 'Gagal menyimpan pengaturan',
         confirmButtonColor: '#16a34a',
       })
     } finally {
@@ -156,6 +202,101 @@ export default function SettingsPage() {
           </div>
         </div>
       )}
+
+      {/* Admin Credentials */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <h2 className="text-xl font-bold text-gray-800 mb-4">Akun Admin</h2>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Username Admin</label>
+            <input
+              type="text"
+              value={adminUsername}
+              onChange={(e) => setAdminUsername(e.target.value)}
+              placeholder="admin"
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowPasswordFields((prev) => !prev)}
+            className="text-left w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100"
+          >
+            {showPasswordFields ? 'Sembunyikan opsi ganti password' : 'Ganti password admin'}
+          </button>
+
+          {showPasswordFields && (
+            <div className="space-y-4">
+              <div className="lg:col-span-3">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Password Saat Ini</label>
+                <div className="relative">
+                  <input
+                    type={showCurrentPassword ? 'text' : 'password'}
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="Masukkan password saat ini"
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrentPassword((prev) => !prev)}
+                    className="absolute inset-y-0 right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-green-600"
+                    aria-label={showCurrentPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+                  >
+                    <FontAwesomeIcon icon={showCurrentPassword ? faEyeSlash : faEye} />
+                  </button>
+                </div>
+              </div>
+              <div className="grid gap-4 lg:grid-cols-2">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Password Baru</label>
+                  <div className="relative">
+                    <input
+                      type={showNewPassword ? 'text' : 'password'}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Masukkan password baru"
+                      className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword((prev) => !prev)}
+                      className="absolute inset-y-0 right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-green-600"
+                      aria-label={showNewPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+                    >
+                      <FontAwesomeIcon icon={showNewPassword ? faEyeSlash : faEye} />
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Konfirmasi Password Baru</label>
+                  <div className="relative">
+                    <input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Konfirmasi password baru"
+                      className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword((prev) => !prev)}
+                      className="absolute inset-y-0 right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-green-600"
+                      aria-label={showConfirmPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+                    >
+                      <FontAwesomeIcon icon={showConfirmPassword ? faEyeSlash : faEye} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-sm text-gray-500">Masukkan password saat ini hanya saat mengganti password baru.</p>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Save Button */}
       <button

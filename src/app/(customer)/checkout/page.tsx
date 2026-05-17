@@ -14,15 +14,57 @@ export default function CheckoutPage() {
   const [phone, setPhone] = useState('')
   const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'QRIS' | ''>('')
   const [loading, setLoading] = useState(false)
+  const [cashEnabled, setCashEnabled] = useState(true)
+  const [qrisEnabled, setQrisEnabled] = useState(true)
+  const [settingsLoading, setSettingsLoading] = useState(true)
 
   useEffect(() => {
     if (items.length === 0) {
       router.replace('/produk')
     }
+
+    fetchPaymentSettings()
   }, [items.length, router])
+
+  async function fetchPaymentSettings() {
+    setSettingsLoading(true)
+    try {
+      const res = await fetch('/api/settings')
+      if (res.ok) {
+        const data = await res.json()
+        setCashEnabled(data.cashEnabled !== false)
+        setQrisEnabled(data.qrisEnabled !== false)
+        if (data.cashEnabled === false && paymentMethod === 'CASH') {
+          setPaymentMethod('')
+        }
+        if (data.qrisEnabled === false && paymentMethod === 'QRIS') {
+          setPaymentMethod('')
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load payment settings:', err)
+    } finally {
+      setSettingsLoading(false)
+    }
+  }
 
   if (items.length === 0) {
     return null
+  }
+
+  const paymentOptions = [] as Array<{
+    value: 'CASH' | 'QRIS'
+    label: string
+    icon: typeof Banknote
+    desc: string
+  }>
+
+  if (cashEnabled) {
+    paymentOptions.push({ value: 'CASH', label: 'Cash', icon: Banknote, desc: 'Bayar di kasir' })
+  }
+
+  if (qrisEnabled) {
+    paymentOptions.push({ value: 'QRIS', label: 'QRIS', icon: QrCode, desc: 'Scan QR code' })
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -177,33 +219,42 @@ export default function CheckoutPage() {
         {/* Payment method */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
           <h2 className="font-semibold text-gray-700 mb-3">Metode Pembayaran</h2>
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { value: 'CASH', label: 'Cash', icon: Banknote, desc: 'Bayar di kasir' },
-              { value: 'QRIS', label: 'QRIS', icon: QrCode, desc: 'Scan QR code' },
-            ].map(({ value, label, icon: Icon, desc }) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setPaymentMethod(value as 'CASH' | 'QRIS')}
-                className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
-                  paymentMethod === value
-                    ? 'border-green-500 bg-green-50'
-                    : 'border-gray-200 bg-white hover:border-green-300'
-                }`}
-              >
-                <Icon
-                  className={`w-8 h-8 ${paymentMethod === value ? 'text-green-600' : 'text-gray-400'}`}
-                />
-                <span
-                  className={`font-bold text-base ${paymentMethod === value ? 'text-green-700' : 'text-gray-700'}`}
-                >
-                  {label}
-                </span>
-                <span className="text-xs text-gray-400">{desc}</span>
-              </button>
-            ))}
-          </div>
+          {settingsLoading ? (
+            <p className="text-sm text-gray-500">Memuat metode pembayaran...</p>
+          ) : (
+            <>
+              {paymentOptions.length === 0 ? (
+                <div className="rounded-xl border border-yellow-300 bg-yellow-50 p-4 text-sm text-yellow-800">
+                  Metode pembayaran saat ini tidak tersedia. Silakan hubungi admin.
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  {paymentOptions.map(({ value, label, icon: Icon, desc }) => (
+                    <button
+                        key={value}
+                        type="button"
+                        onClick={() => setPaymentMethod(value as 'CASH' | 'QRIS')}
+                        className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                          paymentMethod === value
+                            ? 'border-green-500 bg-green-50'
+                            : 'border-gray-200 bg-white hover:border-green-300'
+                        }`}
+                      >
+                        <Icon
+                          className={`w-8 h-8 ${paymentMethod === value ? 'text-green-600' : 'text-gray-400'}`}
+                        />
+                        <span
+                          className={`font-bold text-base ${paymentMethod === value ? 'text-green-700' : 'text-gray-700'}`}
+                        >
+                          {label}
+                        </span>
+                        <span className="text-xs text-gray-400">{desc}</span>
+                      </button>
+                    ))}
+                </div>
+              )}
+            </>
+          )}
         </div>
 
         {/* Order summary */}
