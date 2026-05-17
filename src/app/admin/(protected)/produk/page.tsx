@@ -146,26 +146,26 @@ export default function ProductManagementPage() {
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="min-w-full table-auto text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-3 text-left font-semibold text-gray-800">Nama</th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-800">Kategori</th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-800">Harga</th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-800">Stok</th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-800">Status</th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-800">Aksi</th>
+                <th className="px-4 py-3 sm:px-6 text-left font-semibold text-gray-800 whitespace-nowrap">Nama</th>
+                <th className="px-4 py-3 sm:px-6 text-left font-semibold text-gray-800 whitespace-nowrap">Kategori</th>
+                <th className="px-4 py-3 sm:px-6 text-left font-semibold text-gray-800 whitespace-nowrap">Harga</th>
+                <th className="px-4 py-3 sm:px-6 text-left font-semibold text-gray-800 whitespace-nowrap">Stok</th>
+                <th className="px-4 py-3 sm:px-6 text-left font-semibold text-gray-800 whitespace-nowrap">Status</th>
+                <th className="px-4 py-3 sm:px-6 text-left font-semibold text-gray-800 whitespace-nowrap">Aksi</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((product) => (
                 <tr key={product.id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="px-6 py-4 font-medium text-gray-800">{product.name}</td>
-                  <td className="px-6 py-4 text-gray-600">{product.category}</td>
-                  <td className="px-6 py-4 font-semibold text-green-600">
+                  <td className="px-4 py-4 sm:px-6 font-medium text-gray-800 whitespace-nowrap">{product.name}</td>
+                  <td className="px-4 py-4 sm:px-6 text-gray-600 whitespace-nowrap">{product.category}</td>
+                  <td className="px-4 py-4 sm:px-6 font-semibold text-green-600 whitespace-nowrap">
                     {formatRupiah(product.price)}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-4 sm:px-6 whitespace-nowrap">
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-semibold ${
                         product.stock === 0
@@ -178,7 +178,7 @@ export default function ProductManagementPage() {
                       {product.stock} {product.unit}
                     </span>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-4 sm:px-6 whitespace-nowrap">
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-semibold ${
                         product.isActive
@@ -189,7 +189,7 @@ export default function ProductManagementPage() {
                       {product.isActive ? 'Aktif' : 'Nonaktif'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 flex gap-2">
+                  <td className="px-4 py-4 sm:px-6 flex gap-2 whitespace-nowrap">
                     <button
                       onClick={() => openProductModal(product)}
                       className="text-blue-600 hover:text-blue-800 p-1"

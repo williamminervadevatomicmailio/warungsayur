@@ -156,32 +156,32 @@ export default function OrderManagementPage() {
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="min-w-full table-auto text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-3 text-left font-semibold text-gray-800">Transaction ID</th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-800">Customer</th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-800">Total</th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-800">Bayar</th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-800">Barang</th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-800">Waktu</th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-800">Aksi</th>
+                <th className="px-4 py-3 sm:px-6 text-left font-semibold text-gray-800 whitespace-nowrap">Transaction ID</th>
+                <th className="px-4 py-3 sm:px-6 text-left font-semibold text-gray-800 whitespace-nowrap">Customer</th>
+                <th className="px-4 py-3 sm:px-6 text-left font-semibold text-gray-800 whitespace-nowrap">Total</th>
+                <th className="px-4 py-3 sm:px-6 text-left font-semibold text-gray-800 whitespace-nowrap">Bayar</th>
+                <th className="px-4 py-3 sm:px-6 text-left font-semibold text-gray-800 whitespace-nowrap">Barang</th>
+                <th className="px-4 py-3 sm:px-6 text-left font-semibold text-gray-800 whitespace-nowrap">Waktu</th>
+                <th className="px-4 py-3 sm:px-6 text-left font-semibold text-gray-800 whitespace-nowrap">Aksi</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((order) => (
                 <tr key={order.id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="px-6 py-4 font-mono font-semibold text-gray-800">
+                  <td className="px-4 py-4 sm:px-6 font-mono font-semibold text-gray-800 whitespace-nowrap">
                     {order.transactionId}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-4 sm:px-6 whitespace-nowrap">
                     <div className="text-gray-800">{order.customerName || 'Tanpa Nama'}</div>
                     <div className="text-xs text-gray-500">{order.customerPhone}</div>
                   </td>
-                  <td className="px-6 py-4 font-semibold text-green-600">
+                  <td className="px-4 py-4 sm:px-6 font-semibold text-green-600 whitespace-nowrap">
                     {formatRupiah(order.totalPrice)}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-4 sm:px-6 whitespace-nowrap">
                     <select
                       value={order.paymentStatus}
                       onChange={(e) => updateOrderStatus(order.id, e.target.value)}
@@ -192,7 +192,7 @@ export default function OrderManagementPage() {
                       <option value="LUNAS">Lunas</option>
                     </select>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-4 sm:px-6 whitespace-nowrap">
                     <select
                       value={order.itemStatus}
                       onChange={(e) => updateOrderStatus(order.id, undefined, e.target.value)}
@@ -202,10 +202,10 @@ export default function OrderManagementPage() {
                       <option value="READY">Ready</option>
                     </select>
                   </td>
-                  <td className="px-6 py-4 text-xs text-gray-500">
+                  <td className="px-4 py-4 sm:px-6 text-xs text-gray-500 whitespace-nowrap">
                     {formatDate(order.createdAt)}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-4 sm:px-6 whitespace-nowrap">
                     <button
                       onClick={() => handleDelete(order.id, order.transactionId)}
                       className="text-red-600 hover:text-red-800 p-1"
