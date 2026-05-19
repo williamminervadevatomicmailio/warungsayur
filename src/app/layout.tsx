@@ -13,6 +13,9 @@ export const metadata: Metadata = {
   title: 'Warung Sayur Digital',
   description: 'Pesan sayuran segar langsung dari warung kami',
   manifest: '/manifest.json',
+}
+
+export const viewport = {
   themeColor: '#22c55e',
 }
 
